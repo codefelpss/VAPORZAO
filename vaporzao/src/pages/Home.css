@@ -1,0 +1,108 @@
+/* ── Hero ────────────────────────────────────────────────────────────── */
+.home-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(229,9,20,.2);
+  border-radius: var(--radius);
+  padding: 80px 32px;
+  text-align: center;
+  margin-bottom: 40px;
+  background-color: #080000;
+  background-image:
+    linear-gradient(180deg, #09000099 0%, #1a000077 60%, rgba(229,9,20,.06) 100%),
+    linear-gradient(90deg, rgba(229,9,20,.055) 1px, transparent 1px),
+    linear-gradient(0deg,  rgba(229,9,20,.055) 1px, transparent 1px);
+  background-size: cover, 56px 56px, 56px 56px;
+  animation: hero-grid-drift 28s linear infinite;
+}
+
+@keyframes hero-grid-drift {
+  from { background-position: center, 0 0, 0 0; }
+  to   { background-position: center, 56px 56px, 56px 56px; }
+}
+
+/* Orb 1 — canto inferior esquerdo */
+.home-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 90%, rgba(229,9,20,.22) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 80% 10%, rgba(229,9,20,.12) 0%, transparent 65%);
+  animation: hero-orb-drift 10s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes hero-orb-drift {
+  0%   { opacity: .6; transform: scale(1)   translate(0,   0); }
+  50%  { opacity: .9; transform: scale(1.08) translate(2%, -3%); }
+  100% { opacity: .6; transform: scale(0.95) translate(-2%, 2%); }
+}
+
+/* Scan-line sutil + fade inferior */
+.home-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(transparent, transparent 3px, rgba(0,0,0,.04) 3px, rgba(0,0,0,.04) 4px),
+    linear-gradient(to bottom, transparent 55%, rgba(229,9,20,.06) 85%, rgba(229,9,20,.14) 100%);
+  pointer-events: none;
+}
+
+/* H1 */
+.home-hero h1 {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-head);
+  font-size: 58px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 24px rgba(229,9,20,.6), 0 0 50px rgba(229,9,20,.25), 0 2px 0 #000;
+  margin-bottom: 12px;
+  letter-spacing: 3px;
+}
+
+/* Subtitle */
+.home-hero p {
+  position: relative;
+  z-index: 1;
+  color: rgba(255,180,180,.75);
+  font-size: 15px;
+  font-style: italic;
+  text-shadow: 0 0 12px rgba(229,9,20,.5);
+  letter-spacing: 1px;
+}
+
+/* "PRESSÃO" shimmer */
+.pressao-silver {
+  background: linear-gradient(90deg, #888 0%, #fff 22%, #d4d4d4 45%, #fff 68%, #888 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  font-style: normal;
+  animation: silver-shimmer 5s linear infinite;
+  filter: drop-shadow(0 0 5px rgba(255,255,255,.5));
+}
+@keyframes silver-shimmer {
+  from { background-position: 220% center; }
+  to   { background-position: -20% center; }
+}
+
+/* CTA button */
+.home-hero a { position: relative; z-index: 1; }
+
+.hero-cta {
+  display: inline-block;
+  padding: 11px 28px;
+  border-radius: var(--radius);
+  margin-top: 20px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: .5px;
+}
+
+/* ── Sections ────────────────────────────────────────────────────────── */
+.home-section { margin-bottom: 40px; }
