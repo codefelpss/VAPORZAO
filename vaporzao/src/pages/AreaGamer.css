@@ -1,0 +1,185 @@
+.area-gamer-page { display: flex; flex-direction: column; gap: 20px; }
+
+.area-gamer-header { display: flex; flex-direction: column; gap: 4px; }
+.area-gamer-sub { color: var(--text2); font-size: 13px; font-weight: 400; }
+
+/* ── Tabs ────────────────────────────────────────────────────────────── */
+.area-gamer-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  gap: 0;
+}
+.area-gamer-tabs button {
+  background: transparent;
+  color: var(--text2);
+  border-radius: 0;
+  padding: 10px 22px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .15s, border-color .15s, box-shadow .15s;
+}
+.area-gamer-tabs button:hover { color: var(--text); filter: none; }
+.area-gamer-tabs button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  box-shadow: 0 2px 10px var(--accent-dim);
+}
+
+.area-gamer-content {}
+
+/* ── Biblioteca cards ────────────────────────────────────────────────── */
+.bib-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.bib-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+.bib-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-hi);
+  box-shadow: 0 16px 36px rgba(0,0,0,.6);
+}
+
+.bib-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+.bib-no-img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: var(--card2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: var(--border-hi);
+}
+
+.bib-body { padding: 12px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.bib-titulo { color: #fff; font-size: 14px; font-family: var(--font-head); font-weight: 700; letter-spacing: .2px; }
+.bib-titulo:hover { color: var(--accent); }
+.bib-dev  { color: var(--text2); font-size: 12px; }
+.bib-horas {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-head);
+  letter-spacing: .3px;
+}
+.bib-data { color: var(--text2); font-size: 11px; }
+
+/* ── Progress bar ────────────────────────────────────────────────────── */
+.bib-conquistas { margin-top: 6px; display: flex; flex-direction: column; gap: 5px; }
+.bib-conq-header { display: flex; justify-content: space-between; align-items: center; }
+.bib-conq-label { color: var(--text2); font-size: 11px; }
+.bib-conq-count { color: var(--text2); font-size: 11px; font-weight: 600; }
+.bib-conq-bar-bg {
+  height: 4px;
+  background: var(--border-hi);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.bib-conq-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent2) 0%, var(--accent) 100%);
+  border-radius: 2px;
+  transition: width .6s ease;
+  box-shadow: 0 0 6px rgba(229,9,20,.4);
+}
+
+/* ── "VAPORIZADO" badge ──────────────────────────────────────────────── */
+.bib-vaporizado {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: linear-gradient(110deg, #606060, #c8c8c8 40%, #c4a44a);
+  box-shadow: 0 0 12px rgba(212,175,55,.35), 0 0 4px rgba(192,192,192,.5);
+  animation: vaporizado-pulse 2.4s ease-in-out infinite;
+}
+.bib-vaporizado-icon { font-size: 16px; }
+.bib-vaporizado-texto {
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, #fff 0%, #d4af37 60%, #fff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.bib-vaporizado-sub { font-size: 10px; color: rgba(255,255,255,.6); margin-left: auto; }
+@keyframes vaporizado-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(212,175,55,.3), 0 0 3px rgba(192,192,192,.4); }
+  50%       { box-shadow: 0 0 18px rgba(212,175,55,.6), 0 0 8px rgba(192,192,192,.5); }
+}
+
+/* ── Biblioteca ações ────────────────────────────────────────────────── */
+.bib-acoes { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 10px; }
+.bib-btn-jogar {
+  font-size: 12px;
+  padding: 7px 14px;
+  font-weight: 700;
+  flex: 1;
+  letter-spacing: .5px;
+}
+
+/* ── Wishlist ────────────────────────────────────────────────────────── */
+.wish-list { display: flex; flex-direction: column; gap: 10px; }
+
+.wish-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0;
+  overflow: hidden;
+  transition: border-color .2s, box-shadow .2s;
+}
+.wish-item:hover {
+  border-color: var(--border-hi);
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+}
+
+.wish-img { width: 120px; height: 68px; object-fit: cover; flex-shrink: 0; display: block; }
+.wish-no-img {
+  background: var(--card2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: var(--border-hi);
+}
+
+.wish-body { flex: 1; padding: 8px 0; }
+.wish-titulo {
+  color: #fff;
+  font-size: 14px;
+  font-family: var(--font-head);
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+.wish-titulo:hover { color: var(--accent); }
+.wish-dev  { color: var(--text2); font-size: 12px; margin-top: 2px; }
+.wish-data { color: var(--text2); font-size: 11px; margin-top: 4px; }
+
+.wish-acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 10px;
+  flex-shrink: 0;
+}
+.wish-preco {
+  font-family: var(--font-head);
+  color: var(--green);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: .3px;
+}
