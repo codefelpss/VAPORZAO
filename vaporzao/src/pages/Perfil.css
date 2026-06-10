@@ -1,0 +1,90 @@
+.perfil-page { display: flex; flex-direction: column; gap: 28px; }
+
+/* ── Header do perfil ────────────────────────────────────────────────── */
+.perfil-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  flex-wrap: wrap;
+}
+
+.perfil-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  color: #fff;
+  font-family: var(--font-head);
+  font-size: 30px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 24px rgba(229,9,20,.3);
+  border: 2px solid rgba(229,9,20,.3);
+}
+
+.perfil-nome { font-family: var(--font-head); font-size: 22px; font-weight: 700; color: #fff; letter-spacing: .3px; }
+.perfil-matricula { color: var(--text2); font-size: 13px; margin-top: 2px; }
+.perfil-role { color: var(--text2); font-size: 12px; margin-top: 4px; }
+
+.perfil-stats {
+  display: flex;
+  gap: 20px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.perfil-stats div { text-align: center; }
+.perfil-stats strong {
+  display: block;
+  font-family: var(--font-head);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.perfil-stats span { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+
+/* ── Jogos grid ──────────────────────────────────────────────────────── */
+.perfil-section {}
+.perfil-section .section-title { margin-bottom: 12px; }
+
+.perfil-jogos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.perfil-jogo-card {
+  overflow: hidden;
+  color: var(--text);
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+}
+.perfil-jogo-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0,0,0,.55);
+  border-color: var(--border-hi);
+  color: var(--text);
+}
+.perfil-jogo-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+.perfil-no-img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: var(--card2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--border-hi);
+}
+.perfil-jogo-body { padding: 8px; display: flex; justify-content: space-between; align-items: center; }
+.perfil-jogo-body strong { font-size: 12px; color: #fff; font-family: var(--font-head); }
+.perfil-jogo-body span  { font-size: 12px; color: var(--green); font-weight: 700; }
+
+/* ── Reviews do perfil ───────────────────────────────────────────────── */
+.perfil-reviews { display: flex; flex-direction: column; gap: 8px; }
+.perfil-review { padding: 14px; }
+.perfil-review-header { display: flex; align-items: center; gap: 10px; }
+.perfil-review-jogo { color: var(--accent); font-family: var(--font-head); font-size: 14px; font-weight: 700; flex: 1; letter-spacing: .2px; }
+.rec-sim { color: var(--green); font-size: 12px; }
+.rec-nao { color: #E57373; font-size: 12px; }
