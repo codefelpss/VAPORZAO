@@ -1,0 +1,97 @@
+.login-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 60px;
+  min-height: calc(100vh - 54px);
+  position: relative;
+}
+
+/* Background animado */
+.login-wrap::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(229,9,20,.07) 0%, transparent 65%),
+    linear-gradient(90deg, rgba(229,9,20,.04) 1px, transparent 1px),
+    linear-gradient(0deg,  rgba(229,9,20,.04) 1px, transparent 1px);
+  background-size: cover, 52px 52px, 52px 52px;
+  pointer-events: none;
+  z-index: 0;
+  animation: login-grid-drift 30s linear infinite;
+}
+@keyframes login-grid-drift {
+  from { background-position: center, 0 0, 0 0; }
+  to   { background-position: center, 52px 52px, 52px 52px; }
+}
+
+.login-box {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  padding: 36px;
+  border: 1px solid var(--border-hi);
+  box-shadow:
+    0 0 60px rgba(229,9,20,.06),
+    0 24px 48px rgba(0,0,0,.55);
+}
+
+.login-title {
+  font-family: var(--font-head);
+  text-align: center;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 28px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(229,9,20,.4);
+}
+
+.login-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.login-tabs button {
+  flex: 1;
+  background: transparent;
+  color: var(--text2);
+  border-radius: 0;
+  padding: 10px;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  margin-bottom: -1px;
+  transition: color .15s, border-color .15s, box-shadow .15s;
+}
+.login-tabs button:hover { color: var(--text); filter: none; }
+.login-tabs button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  box-shadow: 0 2px 10px var(--accent-dim);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 11px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+
+.login-hint {
+  margin-top: 16px;
+  color: var(--text2);
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.6;
+}
