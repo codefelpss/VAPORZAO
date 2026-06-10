@@ -1,0 +1,5278 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Vaporzão API",
+    "version": "1.0.0",
+    "description": "API didática — paródia tupiniquim da Steam 🎮\n\n**Como autenticar:** faça login em `POST /auth/login` e envie o token no header `token: <jwt>`.\n\nAlunos: use `POST /auth/primeiro-acesso` no primeiro login."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Desenvolvimento local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Autenticação e sessão"
+    },
+    {
+      "name": "Jogos",
+      "description": "CRUD de jogos e endpoints de vitrine"
+    },
+    {
+      "name": "Reviews",
+      "description": "Avaliações de jogos pelos usuários"
+    },
+    {
+      "name": "Conquistas",
+      "description": "Achievements associados a cada jogo"
+    },
+    {
+      "name": "Imagens",
+      "description": "Screenshots dos jogos"
+    },
+    {
+      "name": "Vídeos",
+      "description": "Trailers e vídeos dos jogos"
+    },
+    {
+      "name": "Biblioteca",
+      "description": "Coleção de jogos do usuário"
+    },
+    {
+      "name": "Wishlist",
+      "description": "Lista de desejos do usuário"
+    },
+    {
+      "name": "Gêneros",
+      "description": "Categorias de jogos"
+    },
+    {
+      "name": "Usuários",
+      "description": "Perfis e gerenciamento de conta"
+    },
+    {
+      "name": "Admin",
+      "description": "Gestão de matrículas — exclusivo do professor"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "token": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "token",
+        "description": "Token JWT — obtido em `POST /auth/login`. Envie no header `token: <jwt>` (não no Authorization)."
+      }
+    },
+    "schemas": {
+      "Erro": {
+        "type": "object",
+        "properties": {
+          "erro": {
+            "type": "string",
+            "example": "Recurso não encontrado"
+          }
+        },
+        "required": [
+          "erro"
+        ]
+      },
+      "ErroValidacao": {
+        "type": "object",
+        "properties": {
+          "erro": {
+            "type": "string",
+            "example": "Payload inválido"
+          },
+          "problemas": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "campo": {
+                  "type": "string",
+                  "example": "titulo"
+                },
+                "mensagem": {
+                  "type": "string",
+                  "example": "String must contain at least 1 character(s)"
+                }
+              },
+              "required": [
+                "campo",
+                "mensagem"
+              ]
+            }
+          }
+        },
+        "required": [
+          "erro",
+          "problemas"
+        ]
+      },
+      "Genero": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "nome": {
+            "type": "string",
+            "example": "Ação"
+          }
+        },
+        "required": [
+          "id",
+          "nome"
+        ]
+      },
+      "UsuarioResumo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "matricula": {
+            "type": "string",
+            "example": "2024001"
+          },
+          "nome": {
+            "type": "string",
+            "example": "João Silva"
+          }
+        },
+        "required": [
+          "id",
+          "matricula",
+          "nome"
+        ]
+      },
+      "Conquista": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "jogoId": {
+            "type": "integer"
+          },
+          "titulo": {
+            "type": "string",
+            "example": "Primeiro Sangue"
+          },
+          "descricao": {
+            "type": "string",
+            "example": "Vença sua primeira partida"
+          },
+          "pontos": {
+            "type": "integer",
+            "example": 50
+          }
+        },
+        "required": [
+          "id",
+          "jogoId",
+          "titulo",
+          "descricao",
+          "pontos"
+        ]
+      },
+      "Imagem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "jogoId": {
+            "type": "integer"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://example.com/screenshot.png"
+          },
+          "legenda": {
+            "type": "string",
+            "nullable": true,
+            "example": "Modo multiplayer"
+          },
+          "ordem": {
+            "type": "integer",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "jogoId",
+          "url",
+          "legenda",
+          "ordem"
+        ]
+      },
+      "Video": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "jogoId": {
+            "type": "integer"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://youtube.com/watch?v=dQw4w9WgXcQ"
+          },
+          "titulo": {
+            "type": "string",
+            "nullable": true,
+            "example": "Trailer oficial"
+          },
+          "thumbnail": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri"
+          },
+          "ordem": {
+            "type": "integer",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "jogoId",
+          "url",
+          "titulo",
+          "thumbnail",
+          "ordem"
+        ]
+      },
+      "Review": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nota": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "example": 8
+          },
+          "texto": {
+            "type": "string",
+            "example": "Jogo muito divertido!"
+          },
+          "recomenda": {
+            "type": "boolean",
+            "example": true
+          },
+          "autorId": {
+            "type": "integer"
+          },
+          "jogoId": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "nota",
+          "texto",
+          "recomenda",
+          "autorId",
+          "jogoId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "JogoCard": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "titulo": {
+            "type": "string",
+            "example": "Counter-Tapa"
+          },
+          "capaUrl": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "https://example.com/capa.jpg"
+          },
+          "preco": {
+            "type": "number",
+            "example": 29.9
+          },
+          "desenvolvedora": {
+            "type": "string",
+            "example": "Banana Studios"
+          },
+          "lancamento": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T00:00:00.000Z"
+          },
+          "autor": {
+            "$ref": "#/components/schemas/UsuarioResumo"
+          },
+          "generos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Genero"
+            }
+          },
+          "_count": {
+            "type": "object",
+            "properties": {
+              "reviews": {
+                "type": "integer",
+                "example": 42
+              },
+              "imagens": {
+                "type": "integer",
+                "example": 8
+              },
+              "videos": {
+                "type": "integer",
+                "example": 2
+              }
+            },
+            "required": [
+              "reviews",
+              "imagens",
+              "videos"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "titulo",
+          "capaUrl",
+          "preco",
+          "desenvolvedora",
+          "lancamento",
+          "autor",
+          "generos",
+          "_count"
+        ]
+      },
+      "JogoCardDestaques": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "titulo": {
+            "type": "string",
+            "example": "Counter-Tapa"
+          },
+          "capaUrl": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "https://example.com/capa.jpg"
+          },
+          "preco": {
+            "type": "number",
+            "example": 29.9
+          },
+          "desenvolvedora": {
+            "type": "string",
+            "example": "Banana Studios"
+          },
+          "lancamento": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T00:00:00.000Z"
+          },
+          "generos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Genero"
+            }
+          },
+          "contagens": {
+            "type": "object",
+            "properties": {
+              "reviews": {
+                "type": "integer",
+                "example": 42
+              },
+              "bibliotecas": {
+                "type": "integer",
+                "example": 150
+              },
+              "wishlists": {
+                "type": "integer",
+                "example": 30
+              }
+            },
+            "required": [
+              "reviews",
+              "bibliotecas",
+              "wishlists"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "titulo",
+          "capaUrl",
+          "preco",
+          "desenvolvedora",
+          "lancamento",
+          "generos",
+          "contagens"
+        ]
+      },
+      "Jogo": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/JogoCard"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "_count": {
+                "type": "object",
+                "properties": {
+                  "reviews": {
+                    "type": "integer"
+                  },
+                  "bibliotecas": {
+                    "type": "integer"
+                  },
+                  "wishlists": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "reviews",
+                  "bibliotecas",
+                  "wishlists"
+                ]
+              },
+              "descricao": {
+                "type": "string"
+              },
+              "imagens": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Imagem"
+                }
+              },
+              "videos": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Video"
+                }
+              },
+              "conquistas": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Conquista"
+                }
+              },
+              "reviews": {
+                "type": "array",
+                "items": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Review"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "autor": {
+                          "$ref": "#/components/schemas/UsuarioResumo"
+                        }
+                      },
+                      "required": [
+                        "autor"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            "required": [
+              "descricao",
+              "imagens",
+              "videos",
+              "conquistas",
+              "reviews"
+            ]
+          }
+        ]
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/auth/primeiro-acesso": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Define senha no primeiro acesso",
+        "description": "Usado pelo aluno na primeira vez. A matrícula precisa ter sido cadastrada pelo professor via `/admin/matriculas`.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "matricula": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40,
+                    "example": "2024001"
+                  },
+                  "senha": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 120,
+                    "example": "senha123"
+                  }
+                },
+                "required": [
+                  "matricula",
+                  "senha"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Senha definida — retorna JWT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIs..."
+                    },
+                    "usuario": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/UsuarioResumo"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "role": {
+                              "type": "string",
+                              "enum": [
+                                "ALUNO",
+                                "ADMIN"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "role"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "token",
+                    "usuario"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Matrícula já tem senha — use POST /auth/login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Autentica e retorna token JWT",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "matricula": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40,
+                    "example": "2024001"
+                  },
+                  "senha": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 120,
+                    "example": "senha123"
+                  }
+                },
+                "required": [
+                  "matricula",
+                  "senha"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login bem-sucedido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIs..."
+                    },
+                    "usuario": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/UsuarioResumo"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "role": {
+                              "type": "string",
+                              "enum": [
+                                "ALUNO",
+                                "ADMIN"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "role"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "token",
+                    "usuario"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Matrícula ou senha inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Dados do usuário autenticado com contagens",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário logado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/UsuarioResumo"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "ALUNO",
+                            "ADMIN"
+                          ]
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "_count": {
+                          "type": "object",
+                          "properties": {
+                            "jogosCriados": {
+                              "type": "integer"
+                            },
+                            "reviews": {
+                              "type": "integer"
+                            },
+                            "biblioteca": {
+                              "type": "integer"
+                            },
+                            "wishlist": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "jogosCriados",
+                            "reviews",
+                            "biblioteca",
+                            "wishlist"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "role",
+                        "createdAt",
+                        "_count"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jogos/destaques": {
+      "get": {
+        "tags": [
+          "Jogos"
+        ],
+        "summary": "Listas curadas para a home: recentes, top avaliados e populares",
+        "responses": {
+          "200": {
+            "description": "Três listas de 6 jogos cada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "recentes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/JogoCardDestaques"
+                      }
+                    },
+                    "topAvaliados": {
+                      "type": "array",
+                      "items": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/JogoCardDestaques"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "mediaNotas": {
+                                "type": "number",
+                                "nullable": true,
+                                "example": 8.4
+                              }
+                            },
+                            "required": [
+                              "mediaNotas"
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "populares": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/JogoCardDestaques"
+                      }
+                    }
+                  },
+                  "required": [
+                    "recentes",
+                    "topAvaliados",
+                    "populares"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jogos": {
+      "get": {
+        "tags": [
+          "Jogos"
+        ],
+        "summary": "Lista jogos com paginação, busca e filtros",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Padrão: 1",
+              "example": 1
+            },
+            "required": false,
+            "name": "pagina",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Padrão: 20",
+              "example": 20
+            },
+            "required": false,
+            "name": "limite",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Busca em título, descrição e desenvolvedora",
+              "example": "Counter"
+            },
+            "required": false,
+            "name": "busca",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filtra pelo nome do gênero",
+              "example": "Ação"
+            },
+            "required": false,
+            "name": "genero",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "recentes",
+                "preco",
+                "lancamento",
+                "titulo"
+              ],
+              "description": "Padrão: recentes"
+            },
+            "required": false,
+            "name": "ordenar",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "description": "Padrão: desc"
+            },
+            "required": false,
+            "name": "direcao",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de resultados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pagina": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "limite": {
+                      "type": "integer",
+                      "example": 20
+                    },
+                    "total": {
+                      "type": "integer",
+                      "example": 47
+                    },
+                    "paginas": {
+                      "type": "integer",
+                      "example": 3
+                    },
+                    "itens": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/JogoCard"
+                      }
+                    }
+                  },
+                  "required": [
+                    "pagina",
+                    "limite",
+                    "total",
+                    "paginas",
+                    "itens"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Jogos"
+        ],
+        "summary": "Cria um jogo (máximo 3 por aluno)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titulo": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "example": "Counter-Tapa"
+                  },
+                  "descricao": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "example": "O melhor FPS tupiniquim do mercado"
+                  },
+                  "preco": {
+                    "type": "number",
+                    "minimum": 0,
+                    "example": 29.9
+                  },
+                  "desenvolvedora": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150,
+                    "example": "Banana Studios"
+                  },
+                  "lancamento": {
+                    "type": "string",
+                    "description": "Data em formato ISO 8601",
+                    "example": "2024-01-15T00:00:00.000Z"
+                  },
+                  "capaUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://example.com/capa.jpg"
+                  },
+                  "generoIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "exclusiveMinimum": true
+                    },
+                    "example": [
+                      1,
+                      2
+                    ]
+                  }
+                },
+                "required": [
+                  "titulo",
+                  "descricao",
+                  "preco",
+                  "desenvolvedora",
+                  "lancamento"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Jogo criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Jogo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Limite de 3 jogos por matrícula atingido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jogos/{id}": {
+      "get": {
+        "tags": [
+          "Jogos"
+        ],
+        "summary": "Detalhe completo de um jogo (mídia, conquistas e últimas 10 reviews)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Jogo completo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Jogo"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Jogos"
+        ],
+        "summary": "Substitui todos os dados de um jogo (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titulo": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "example": "Counter-Tapa"
+                  },
+                  "descricao": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "example": "O melhor FPS tupiniquim do mercado"
+                  },
+                  "preco": {
+                    "type": "number",
+                    "minimum": 0,
+                    "example": 29.9
+                  },
+                  "desenvolvedora": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150,
+                    "example": "Banana Studios"
+                  },
+                  "lancamento": {
+                    "type": "string",
+                    "description": "Data em formato ISO 8601",
+                    "example": "2024-01-15T00:00:00.000Z"
+                  },
+                  "capaUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://example.com/capa.jpg"
+                  },
+                  "generoIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "exclusiveMinimum": true
+                    },
+                    "example": [
+                      1,
+                      2
+                    ]
+                  }
+                },
+                "required": [
+                  "titulo",
+                  "descricao",
+                  "preco",
+                  "desenvolvedora",
+                  "lancamento"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Jogo atualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Jogo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Jogos"
+        ],
+        "summary": "Atualiza campos específicos de um jogo (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titulo": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "example": "Counter-Tapa"
+                  },
+                  "descricao": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 5000,
+                    "example": "O melhor FPS tupiniquim do mercado"
+                  },
+                  "preco": {
+                    "type": "number",
+                    "minimum": 0,
+                    "example": 29.9
+                  },
+                  "desenvolvedora": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150,
+                    "example": "Banana Studios"
+                  },
+                  "lancamento": {
+                    "type": "string",
+                    "description": "Data em formato ISO 8601",
+                    "example": "2024-01-15T00:00:00.000Z"
+                  },
+                  "capaUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://example.com/capa.jpg"
+                  },
+                  "generoIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "exclusiveMinimum": true
+                    },
+                    "example": [
+                      1,
+                      2
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Jogo atualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Jogo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Jogos"
+        ],
+        "summary": "Remove um jogo (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Jogo removido"
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jogos/{id}/status": {
+      "get": {
+        "tags": [
+          "Jogos"
+        ],
+        "summary": "Status do jogo para o usuário logado",
+        "description": "Retorna se o jogo está na biblioteca, na wishlist e se o usuário já escreveu uma review. Útil para renderizar botões condicionais no frontend.",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status do jogo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "naBiblioteca": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "naWishlist": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "reviewFeita": {
+                      "type": "boolean",
+                      "example": false
+                    }
+                  },
+                  "required": [
+                    "naBiblioteca",
+                    "naWishlist",
+                    "reviewFeita"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jogos/{id}/reviews": {
+      "get": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Lista todas as reviews de um jogo",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviews",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Review"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "autor": {
+                            "$ref": "#/components/schemas/UsuarioResumo"
+                          }
+                        },
+                        "required": [
+                          "autor"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Cria review para um jogo (1 por usuário por jogo)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nota": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10,
+                    "example": 8
+                  },
+                  "texto": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "example": "Jogo muito divertido, recomendo!"
+                  },
+                  "recomenda": {
+                    "type": "boolean",
+                    "example": true
+                  }
+                },
+                "required": [
+                  "nota",
+                  "texto",
+                  "recomenda"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Review criada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Review"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflito — registro duplicado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reviews/{id}": {
+      "get": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Detalhe de uma review",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Review"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "jogo": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "titulo": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "titulo"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "jogo"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Substitui uma review (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nota": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10,
+                    "example": 8
+                  },
+                  "texto": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "example": "Jogo muito divertido, recomendo!"
+                  },
+                  "recomenda": {
+                    "type": "boolean",
+                    "example": true
+                  }
+                },
+                "required": [
+                  "nota",
+                  "texto",
+                  "recomenda"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Review atualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Review"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Atualiza campos de uma review (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nota": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10,
+                    "example": 8
+                  },
+                  "texto": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "example": "Jogo muito divertido, recomendo!"
+                  },
+                  "recomenda": {
+                    "type": "boolean",
+                    "example": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Review atualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Review"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Remove uma review (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Review removida"
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jogos/{id}/conquistas": {
+      "get": {
+        "tags": [
+          "Conquistas"
+        ],
+        "summary": "Lista conquistas de um jogo",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conquistas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Conquista"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Conquistas"
+        ],
+        "summary": "Adiciona conquista a um jogo (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titulo": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "example": "Primeiro Sangue"
+                  },
+                  "descricao": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500,
+                    "example": "Vença sua primeira partida"
+                  },
+                  "pontos": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000,
+                    "example": 50
+                  }
+                },
+                "required": [
+                  "titulo",
+                  "descricao",
+                  "pontos"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Conquista criada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conquista"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/conquistas/{id}": {
+      "get": {
+        "tags": [
+          "Conquistas"
+        ],
+        "summary": "Detalhe de uma conquista",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conquista",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Conquista"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "jogo": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "titulo": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "titulo"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "jogo"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Conquistas"
+        ],
+        "summary": "Substitui uma conquista (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titulo": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "example": "Primeiro Sangue"
+                  },
+                  "descricao": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500,
+                    "example": "Vença sua primeira partida"
+                  },
+                  "pontos": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000,
+                    "example": 50
+                  }
+                },
+                "required": [
+                  "titulo",
+                  "descricao",
+                  "pontos"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Conquista atualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conquista"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Conquistas"
+        ],
+        "summary": "Atualiza campos de uma conquista (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titulo": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "example": "Primeiro Sangue"
+                  },
+                  "descricao": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500,
+                    "example": "Vença sua primeira partida"
+                  },
+                  "pontos": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000,
+                    "example": 50
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Conquista atualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conquista"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Conquistas"
+        ],
+        "summary": "Remove uma conquista (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Conquista removida"
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jogos/{id}/imagens": {
+      "get": {
+        "tags": [
+          "Imagens"
+        ],
+        "summary": "Lista screenshots de um jogo (ordenadas por campo ordem)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Imagens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Imagem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Imagens"
+        ],
+        "summary": "Adiciona imagem(ns) — envie objeto único ou array (máx 50) (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://example.com/screenshot.png"
+                      },
+                      "legenda": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "example": "Modo multiplayer"
+                      },
+                      "ordem": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000,
+                        "example": 0
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ]
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "format": "uri",
+                          "example": "https://example.com/screenshot.png"
+                        },
+                        "legenda": {
+                          "type": "string",
+                          "maxLength": 200,
+                          "example": "Modo multiplayer"
+                        },
+                        "ordem": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000,
+                          "example": 0
+                        }
+                      },
+                      "required": [
+                        "url"
+                      ]
+                    },
+                    "maxItems": 50
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Imagens criadas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Imagem"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/imagens/{id}": {
+      "get": {
+        "tags": [
+          "Imagens"
+        ],
+        "summary": "Detalhe de uma imagem",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Imagem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Imagem"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "jogo": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "titulo": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "titulo"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "jogo"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Imagens"
+        ],
+        "summary": "Substitui uma imagem (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://example.com/screenshot.png"
+                  },
+                  "legenda": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "example": "Modo multiplayer"
+                  },
+                  "ordem": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000,
+                    "example": 0
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Imagem atualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Imagem"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Imagens"
+        ],
+        "summary": "Atualiza campos de uma imagem (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://example.com/screenshot.png"
+                  },
+                  "legenda": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "example": "Modo multiplayer"
+                  },
+                  "ordem": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000,
+                    "example": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Imagem atualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Imagem"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Imagens"
+        ],
+        "summary": "Remove uma imagem (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Imagem removida"
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jogos/{id}/videos": {
+      "get": {
+        "tags": [
+          "Vídeos"
+        ],
+        "summary": "Lista vídeos de um jogo (ordenados por campo ordem)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vídeos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Video"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Vídeos"
+        ],
+        "summary": "Adiciona vídeo(s) — envie objeto único ou array (máx 20) (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://youtube.com/watch?v=dQw4w9WgXcQ"
+                      },
+                      "titulo": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "example": "Trailer oficial"
+                      },
+                      "thumbnail": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg"
+                      },
+                      "ordem": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000,
+                        "example": 0
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ]
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "format": "uri",
+                          "example": "https://youtube.com/watch?v=dQw4w9WgXcQ"
+                        },
+                        "titulo": {
+                          "type": "string",
+                          "maxLength": 200,
+                          "example": "Trailer oficial"
+                        },
+                        "thumbnail": {
+                          "type": "string",
+                          "format": "uri",
+                          "example": "https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg"
+                        },
+                        "ordem": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000,
+                          "example": 0
+                        }
+                      },
+                      "required": [
+                        "url"
+                      ]
+                    },
+                    "maxItems": 20
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Vídeos criados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Video"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/{id}": {
+      "get": {
+        "tags": [
+          "Vídeos"
+        ],
+        "summary": "Detalhe de um vídeo",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vídeo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Video"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "jogo": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "titulo": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "titulo"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "jogo"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Vídeos"
+        ],
+        "summary": "Substitui um vídeo (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://youtube.com/watch?v=dQw4w9WgXcQ"
+                  },
+                  "titulo": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "example": "Trailer oficial"
+                  },
+                  "thumbnail": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg"
+                  },
+                  "ordem": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000,
+                    "example": 0
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Vídeo atualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Video"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Vídeos"
+        ],
+        "summary": "Atualiza campos de um vídeo (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://youtube.com/watch?v=dQw4w9WgXcQ"
+                  },
+                  "titulo": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "example": "Trailer oficial"
+                  },
+                  "thumbnail": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg"
+                  },
+                  "ordem": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000,
+                    "example": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Vídeo atualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Video"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Vídeos"
+        ],
+        "summary": "Remove um vídeo (autor ou admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Vídeo removido"
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/biblioteca/me": {
+      "get": {
+        "tags": [
+          "Biblioteca"
+        ],
+        "summary": "Lista jogos na biblioteca do usuário logado",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Biblioteca",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "jogo": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "titulo": {
+                            "type": "string"
+                          },
+                          "capaUrl": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "uri"
+                          },
+                          "preco": {
+                            "type": "number"
+                          },
+                          "desenvolvedora": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "titulo",
+                          "capaUrl",
+                          "preco",
+                          "desenvolvedora"
+                        ]
+                      },
+                      "horasJogadas": {
+                        "type": "integer",
+                        "example": 120
+                      },
+                      "adicionadoEm": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    },
+                    "required": [
+                      "jogo",
+                      "horasJogadas",
+                      "adicionadoEm"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/biblioteca/{jogoId}": {
+      "post": {
+        "tags": [
+          "Biblioteca"
+        ],
+        "summary": "Adiciona um jogo à biblioteca",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "jogoId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Jogo adicionado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "integer"
+                    },
+                    "jogoId": {
+                      "type": "integer"
+                    },
+                    "horasJogadas": {
+                      "type": "integer",
+                      "example": 120
+                    },
+                    "adicionadoEm": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "jogoId",
+                    "horasJogadas",
+                    "adicionadoEm"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Biblioteca"
+        ],
+        "summary": "Atualiza horas jogadas",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "jogoId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "horasJogadas": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 99999,
+                    "example": 42
+                  }
+                },
+                "required": [
+                  "horasJogadas"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Horas atualizadas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "integer"
+                    },
+                    "jogoId": {
+                      "type": "integer"
+                    },
+                    "horasJogadas": {
+                      "type": "integer",
+                      "example": 120
+                    },
+                    "adicionadoEm": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "jogoId",
+                    "horasJogadas",
+                    "adicionadoEm"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Biblioteca"
+        ],
+        "summary": "Remove um jogo da biblioteca",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "jogoId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Jogo removido da biblioteca"
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/wishlist/me": {
+      "get": {
+        "tags": [
+          "Wishlist"
+        ],
+        "summary": "Lista jogos na wishlist do usuário logado",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Wishlist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "jogo": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "titulo": {
+                            "type": "string"
+                          },
+                          "capaUrl": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "uri"
+                          },
+                          "preco": {
+                            "type": "number"
+                          },
+                          "desenvolvedora": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "titulo",
+                          "capaUrl",
+                          "preco",
+                          "desenvolvedora"
+                        ]
+                      },
+                      "adicionadoEm": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    },
+                    "required": [
+                      "jogo",
+                      "adicionadoEm"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/wishlist/{jogoId}": {
+      "post": {
+        "tags": [
+          "Wishlist"
+        ],
+        "summary": "Adiciona um jogo à wishlist",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "jogoId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Jogo adicionado à wishlist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "integer"
+                    },
+                    "jogoId": {
+                      "type": "integer"
+                    },
+                    "adicionadoEm": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "jogoId",
+                    "adicionadoEm"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Wishlist"
+        ],
+        "summary": "Remove um jogo da wishlist",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "jogoId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Jogo removido da wishlist"
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generos": {
+      "get": {
+        "tags": [
+          "Gêneros"
+        ],
+        "summary": "Lista todos os gêneros com contagem de jogos",
+        "responses": {
+          "200": {
+            "description": "Gêneros",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Genero"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "_count": {
+                            "type": "object",
+                            "properties": {
+                              "jogos": {
+                                "type": "integer",
+                                "example": 12
+                              }
+                            },
+                            "required": [
+                              "jogos"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "_count"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Gêneros"
+        ],
+        "summary": "Cria um gênero (admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 80,
+                    "example": "Ação"
+                  }
+                },
+                "required": [
+                  "nome"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Gênero criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Genero"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflito — registro duplicado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generos/{id}": {
+      "get": {
+        "tags": [
+          "Gêneros"
+        ],
+        "summary": "Detalhe de um gênero com lista de jogos",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Gênero com jogos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Genero"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "jogos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "titulo": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "titulo"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "jogos"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Gêneros"
+        ],
+        "summary": "Renomeia um gênero (admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 80,
+                    "example": "Ação"
+                  }
+                },
+                "required": [
+                  "nome"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Gênero atualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Genero"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Gêneros"
+        ],
+        "summary": "Remove um gênero (admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "example": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Gênero removido"
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuarios": {
+      "get": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Lista todos os usuários (admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuários",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/UsuarioResumo"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "ALUNO",
+                              "ADMIN"
+                            ]
+                          },
+                          "primeiroAcessoFeito": {
+                            "type": "boolean"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "contagens": {
+                            "type": "object",
+                            "properties": {
+                              "jogosCriados": {
+                                "type": "integer"
+                              },
+                              "reviews": {
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "jogosCriados",
+                              "reviews"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "role",
+                          "primeiroAcessoFeito",
+                          "createdAt",
+                          "contagens"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuarios/{matricula}": {
+      "get": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Perfil público de um usuário com jogos criados e últimas 20 reviews",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "2024001"
+            },
+            "required": true,
+            "name": "matricula",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/UsuarioResumo"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "ALUNO",
+                            "ADMIN"
+                          ]
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "jogosCriados": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "titulo": {
+                                "type": "string"
+                              },
+                              "capaUrl": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "preco": {
+                                "type": "number"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "titulo",
+                              "capaUrl",
+                              "preco",
+                              "createdAt"
+                            ]
+                          }
+                        },
+                        "reviews": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "nota": {
+                                "type": "integer"
+                              },
+                              "recomenda": {
+                                "type": "boolean"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "jogo": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "integer"
+                                  },
+                                  "titulo": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "titulo"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "nota",
+                              "recomenda",
+                              "createdAt",
+                              "jogo"
+                            ]
+                          }
+                        },
+                        "_count": {
+                          "type": "object",
+                          "properties": {
+                            "jogosCriados": {
+                              "type": "integer"
+                            },
+                            "reviews": {
+                              "type": "integer"
+                            },
+                            "biblioteca": {
+                              "type": "integer"
+                            },
+                            "wishlist": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "jogosCriados",
+                            "reviews",
+                            "biblioteca",
+                            "wishlist"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "role",
+                        "createdAt",
+                        "jogosCriados",
+                        "reviews",
+                        "_count"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuarios/{matricula}/jogos": {
+      "get": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Lista jogos criados por um usuário",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "2024001"
+            },
+            "required": true,
+            "name": "matricula",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Jogos do usuário",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/JogoCard"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuarios/me": {
+      "patch": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Atualiza o nome do usuário logado",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 200,
+                    "example": "Maria Souza"
+                  }
+                },
+                "required": [
+                  "nome"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário atualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/UsuarioResumo"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "ALUNO",
+                            "ADMIN"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "role"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Remove a própria conta (não disponível para admin)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Conta removida"
+          },
+          "400": {
+            "description": "Requisição inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/matriculas": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Cadastra matrícula(s) — envie objeto único ou array (máx 500)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "matricula": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 40,
+                        "example": "2024001"
+                      },
+                      "nome": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 200,
+                        "example": "João Silva"
+                      }
+                    },
+                    "required": [
+                      "matricula",
+                      "nome"
+                    ]
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "matricula": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40,
+                          "example": "2024001"
+                        },
+                        "nome": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 200,
+                          "example": "João Silva"
+                        }
+                      },
+                      "required": [
+                        "matricula",
+                        "nome"
+                      ]
+                    },
+                    "maxItems": 500
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Resultado do processamento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "processadas": {
+                      "type": "integer",
+                      "example": 3
+                    },
+                    "novas": {
+                      "type": "integer",
+                      "example": 2
+                    },
+                    "atualizadas": {
+                      "type": "integer",
+                      "example": 1
+                    }
+                  },
+                  "required": [
+                    "processadas",
+                    "novas",
+                    "atualizadas"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (falha de validação)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroValidacao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Lista matrículas com status de primeiro acesso",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matrículas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "matricula": {
+                        "type": "string"
+                      },
+                      "nome": {
+                        "type": "string"
+                      },
+                      "primeiroAcessoFeito": {
+                        "type": "boolean"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "matricula",
+                      "nome",
+                      "primeiroAcessoFeito",
+                      "createdAt"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/matriculas/{matricula}": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Remove uma matrícula",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "2024001"
+            },
+            "required": true,
+            "name": "matricula",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Matrícula removida"
+          },
+          "400": {
+            "description": "Requisição inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/matriculas/{matricula}/reset-senha": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Zera a senha de um aluno (força novo primeiro-acesso)",
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "2024001"
+            },
+            "required": true,
+            "name": "matricula",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Senha zerada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": {
+                      "type": "string",
+                      "example": "Senha zerada. O aluno deve refazer POST /auth/primeiro-acesso."
+                    }
+                  },
+                  "required": [
+                    "mensagem"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — header \"token\" ausente ou inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão para esta operação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
